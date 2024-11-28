@@ -22,21 +22,17 @@ def create_app():
     
     # Setup logging
     if not app.debug and not app.testing:
-        # Create logs directory if it doesn't exist
-        if not os.path.exists('logs'):
-            os.mkdir('logs')
-            
         # Stream logs to stdout for Heroku
         stream_handler = logging.StreamHandler()
         stream_handler.setLevel(logging.INFO)
         app.logger.addHandler(stream_handler)
-        
         app.logger.setLevel(logging.INFO)
         app.logger.info('HR Resume Analyzer startup')
     
     # Register blueprints
-    from .routes import main
-    app.register_blueprint(main)
+    from .routes import bp
+    app.register_blueprint(bp)
+    app.logger.info('Registered blueprints')
     
     # Create database tables
     with app.app_context():
@@ -45,5 +41,6 @@ def create_app():
             app.logger.info("Database tables created successfully")
         except Exception as e:
             app.logger.error(f"Error creating database tables: {str(e)}")
+            raise
     
     return app

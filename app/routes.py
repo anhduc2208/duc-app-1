@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, current_app
 from .extensions import db
 from .models.candidate import Candidate
 
-main = Blueprint('main', __name__)
+bp = Blueprint('bp', __name__)
 
-@main.route('/')
+@bp.route('/')
 def index():
+    current_app.logger.info("Accessing index page")
     return 'HR Resume Analyzer is running!'
 
-@main.route('/health')
+@bp.route('/health')
 def health():
+    current_app.logger.info("Health check requested")
     return jsonify({'status': 'healthy'})
