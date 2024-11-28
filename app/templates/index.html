@@ -30,6 +30,35 @@
             top: 10px;
             right: 10px;
         }
+        .chat-container {
+            height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .chat-input {
+            margin-top: 15px;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message.user {
+            background: #e3f2fd;
+            margin-left: 20%;
+        }
+        .message.assistant {
+            background: #fff;
+            margin-right: 20%;
+            border: 1px solid #dee2e6;
+        }
     </style>
 </head>
 <body>
@@ -45,7 +74,8 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-4">
-                <div class="card">
+                <!-- Upload Section -->
+                <div class="card mb-4">
                     <div class="card-body">
                         <h5 class="card-title">Upload Resume</h5>
                         <div class="upload-area" id="uploadArea">
@@ -59,7 +89,8 @@
                     </div>
                 </div>
 
-                <div class="card mt-4">
+                <!-- Filters Section -->
+                <div class="card">
                     <div class="card-body">
                         <h5 class="card-title">Filters</h5>
                         <div class="mb-3">
@@ -81,18 +112,45 @@
             </div>
 
             <div class="col-md-8">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4>Candidates</h4>
-                    <div class="input-group w-50">
-                        <input type="text" class="form-control" placeholder="Search candidates...">
-                        <button class="btn btn-outline-secondary" type="button">
-                            <i class="fas fa-search"></i>
-                        </button>
+                <!-- Chat Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">HR Assistant</h5>
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chatMessages">
+                                <div class="message assistant">
+                                    Hello! I'm your HR assistant. How can I help you today?
+                                </div>
+                            </div>
+                            <div class="chat-input">
+                                <form id="chatForm" class="d-flex">
+                                    <input type="text" class="form-control me-2" id="messageInput" 
+                                           placeholder="Type your message...">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="candidatesList">
-                    <!-- Candidate cards will be dynamically added here -->
+                <!-- Candidates List -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title mb-0">Candidates</h5>
+                            <div class="input-group w-50">
+                                <input type="text" class="form-control" placeholder="Search candidates...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="candidatesList">
+                            <!-- Candidate cards will be dynamically added here -->
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -106,7 +164,7 @@
                     <h5 class="modal-title">Candidate Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
+                <div class="modal-body" id="candidateDetails">
                     <!-- Candidate details will be dynamically added here -->
                 </div>
             </div>
@@ -116,7 +174,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Upload area functionality
+        // Upload functionality
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const uploadProgress = document.getElementById('uploadProgress');
@@ -140,45 +198,98 @@
         });
 
         function handleFile(file) {
-            // Show progress bar
             uploadProgress.classList.remove('d-none');
-            
+            uploadProgress.querySelector('.progress-bar').style.width = '0%';
+
             const formData = new FormData();
             formData.append('resume', file);
 
-            // Simulate upload
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += 10;
-                uploadProgress.querySelector('.progress-bar').style.width = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    setTimeout(() => {
-                        uploadProgress.classList.add('d-none');
-                        alert('Upload complete!');
-                        // Here you would typically make an API call to your backend
-                    }, 500);
-                }
-            }, 200);
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Upload failed');
+                return response.json();
+            })
+            .then(data => {
+                uploadProgress.querySelector('.progress-bar').style.width = '100%';
+                setTimeout(() => {
+                    uploadProgress.classList.add('d-none');
+                    loadCandidates(); // Refresh candidates list
+                    showMessage('assistant', 'Resume uploaded successfully! I can help you analyze it.');
+                }, 500);
+            })
+            .catch(error => {
+                uploadProgress.classList.add('d-none');
+                alert('Error uploading file: ' + error.message);
+            });
         }
 
-        // Function to create candidate card
+        // Chat functionality
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const chatMessages = document.getElementById('chatMessages');
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            showMessage('user', message);
+            messageInput.value = '';
+
+            fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                showMessage('assistant', data.message);
+            })
+            .catch(error => {
+                showMessage('assistant', 'Sorry, I encountered an error. Please try again.');
+            });
+        });
+
+        function showMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            messageDiv.textContent = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Candidates functionality
+        function loadCandidates() {
+            fetch('/api/candidates')
+                .then(response => response.json())
+                .then(candidates => {
+                    document.getElementById('candidatesList').innerHTML = 
+                        candidates.map(createCandidateCard).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading candidates:', error);
+                });
+        }
+
         function createCandidateCard(candidate) {
             return `
                 <div class="card candidate-card">
                     <div class="card-body">
                         <span class="status-badge badge bg-${getStatusColor(candidate.status)}">${candidate.status}</span>
-                        <h5 class="card-title">${candidate.name}</h5>
+                        <h5 class="card-title">${candidate.name || 'No Name'}</h5>
                         <p class="card-text">
                             <small class="text-muted">
-                                <i class="fas fa-envelope me-2"></i>${candidate.email}<br>
-                                <i class="fas fa-phone me-2"></i>${candidate.phone}
+                                <i class="fas fa-envelope me-2"></i>${candidate.email || 'No Email'}<br>
+                                <i class="fas fa-phone me-2"></i>${candidate.phone || 'No Phone'}
                             </small>
                         </p>
                         <p class="card-text">
-                            <span class="badge bg-light text-dark me-1">Python</span>
-                            <span class="badge bg-light text-dark me-1">SQL</span>
-                            <span class="badge bg-light text-dark">JavaScript</span>
+                            ${createSkillBadges(candidate.skills)}
                         </p>
                         <button class="btn btn-sm btn-primary" onclick="viewCandidate(${candidate.id})">
                             View Details
@@ -186,6 +297,19 @@
                     </div>
                 </div>
             `;
+        }
+
+        function createSkillBadges(skills) {
+            if (!skills) return '';
+            try {
+                const skillsArray = typeof skills === 'string' ? JSON.parse(skills) : skills;
+                return skillsArray
+                    .slice(0, 3)
+                    .map(skill => `<span class="badge bg-light text-dark me-1">${skill}</span>`)
+                    .join('');
+            } catch (e) {
+                return '';
+            }
         }
 
         function getStatusColor(status) {
@@ -198,21 +322,40 @@
             return colors[status] || 'secondary';
         }
 
-        // Load sample data
-        const sampleCandidates = [
-            {
-                id: 1,
-                name: 'John Doe',
-                email: 'john@example.com',
-                phone: '+1234567890',
-                status: 'pending'
-            },
-            // Add more sample candidates as needed
-        ];
+        function viewCandidate(id) {
+            fetch(`/api/candidates/${id}`)
+                .then(response => response.json())
+                .then(candidate => {
+                    document.getElementById('candidateDetails').innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Contact Information</h6>
+                                <p>
+                                    <strong>Email:</strong> ${candidate.email || 'N/A'}<br>
+                                    <strong>Phone:</strong> ${candidate.phone || 'N/A'}
+                                </p>
+                                
+                                <h6>Skills</h6>
+                                <p>${createSkillBadges(candidate.skills)}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Education</h6>
+                                <p>${candidate.education || 'N/A'}</p>
+                                
+                                <h6>Experience</h6>
+                                <p>${candidate.experience || 'N/A'}</p>
+                            </div>
+                        </div>
+                    `;
+                    $('#candidateModal').modal('show');
+                })
+                .catch(error => {
+                    console.error('Error loading candidate details:', error);
+                });
+        }
 
-        // Render sample candidates
-        document.getElementById('candidatesList').innerHTML = 
-            sampleCandidates.map(createCandidateCard).join('');
+        // Initial load
+        loadCandidates();
 
         // Filter functionality
         document.getElementById('statusFilter').addEventListener('change', function(e) {
@@ -222,11 +365,6 @@
         document.getElementById('skillsFilter').addEventListener('input', function(e) {
             // Implement skills filter logic
         });
-
-        function viewCandidate(id) {
-            // Implement view candidate details logic
-            $('#candidateModal').modal('show');
-        }
     </script>
 </body>
 </html>
