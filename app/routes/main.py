@@ -84,6 +84,7 @@ def chat():
 
         # Get OpenAI API key from environment variable
         openai.api_key = os.environ.get('OPENAI_API_KEY')
+        openai.organization = os.environ.get('OPENAI_ORG_ID')
         if not openai.api_key:
             return jsonify({'error': 'OpenAI API key not configured'}), 500
 
