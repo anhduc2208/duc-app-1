@@ -1,0 +1,14 @@
+[Unit]
+Description=HR Resume Analyzer
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/hr_resume_analyzer
+Environment="PATH=/path/to/venv/bin"
+ExecStart=/path/to/venv/bin/gunicorn --workers 4 --bind 127.0.0.1:8000 wsgi:application
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

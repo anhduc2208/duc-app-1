@@ -1,0 +1,50 @@
+NGUYỄN VĂN A
+Software Engineer
+
+Email: nguyenvana@email.com
+Phone: +84912345678
+Address: Hà Nội, Việt Nam
+
+HỌC VẤN
+Đại học Bách Khoa Hà Nội (2015-2019)
+- Chuyên ngành: Công nghệ thông tin
+- GPA: 3.5/4.0
+- Tốt nghiệp loại Giỏi
+
+KINH NGHIỆM LÀM VIỆC
+Senior Software Engineer | Tech Company ABC (2020-Present)
+- Phát triển và duy trì các ứng dụng web sử dụng Python/Django và React
+- Tối ưu hóa hiệu suất database, giảm 40% thời gian truy vấn
+- Hướng dẫn và mentoring cho 3 junior developers
+
+Software Developer | XYZ Solutions (2019-2020)
+- Phát triển RESTful APIs sử dụng Flask và PostgreSQL
+- Triển khai CI/CD pipeline sử dụng Jenkins
+- Tích hợp thanh toán với các cổng thanh toán như Stripe, PayPal
+
+KỸ NĂNG
+Programming Languages:
+- Python, JavaScript, Java
+- SQL, MongoDB
+- HTML/CSS
+
+Frameworks & Tools:
+- Django, Flask, React
+- Docker, Kubernetes
+- Git, Jenkins
+
+CHỨNG CHỈ
+- AWS Certified Developer Associate
+- Python Professional Certificate
+- IELTS 7.0
+
+DỰ ÁN NỔI BẬT
+E-commerce Platform
+- Xây dựng platform TMĐT với Django và React
+- Tích hợp payment gateway và shipping API
+- Xử lý 10,000+ đơn hàng/tháng
+
+AI Chatbot
+- Phát triển chatbot hỗ trợ khách hàng
+- Sử dụng NLP và Machine Learning
+- Giảm 60% thời gian phản hồi khách hàng
