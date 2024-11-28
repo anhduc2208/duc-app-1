@@ -107,15 +107,25 @@ def chat():
 
         # Prepare messages for ChatGPT
         messages = [
-            {"role": "system", "content": "You are an HR assistant helping to evaluate resumes and candidates."},
-            {"role": "user", "content": f"{context}\n\nUser Question: {data['message']}"}
+            {
+                "role": "system", 
+                "content": """Bạn là trợ lý HR, giúp đánh giá hồ sơ ứng viên và trả lời các câu hỏi về tuyển dụng.
+                Hãy trả lời bằng tiếng Việt một cách chuyên nghiệp và thân thiện.
+                Khi đánh giá ứng viên, hãy dựa trên:
+                1. Trình độ học vấn
+                2. Kinh nghiệm làm việc
+                3. Kỹ năng chuyên môn và kỹ năng mềm
+                4. Sự phù hợp với vị trí
+                """
+            },
+            {"role": "user", "content": f"{context}\n\nCâu hỏi: {data['message']}"}
         ]
 
         # Call ChatGPT API
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages,
-            max_tokens=500,
+            max_tokens=1000,  # Tăng độ dài phản hồi
             temperature=0.7
         )
 
