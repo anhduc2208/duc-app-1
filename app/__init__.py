@@ -9,10 +9,16 @@ def create_app():
     app = Flask(__name__)
     
     # Load configuration
-    if os.environ.get('DATABASE_URL'):
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres://', 'postgresql://')
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        # Fix for Heroku Postgres URL
+        if database_url.startswith('postgres://'):
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+        app.config['SQLALCHEMY_DATABASE_URI'] = database_url
     else:
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hr_resume.db'
+    
+    app.logger.info(f"Using database: {app.config['SQLALCHEMY_DATABASE_URI']}")
     
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
@@ -41,6 +47,9 @@ def create_app():
             app.logger.info("Database tables created successfully")
         except Exception as e:
             app.logger.error(f"Error creating database tables: {str(e)}")
+            # Print full error details
+            import traceback
+            app.logger.error(traceback.format_exc())
             raise
     
     return app
